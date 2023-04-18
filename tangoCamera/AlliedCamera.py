@@ -14,13 +14,13 @@
 __all__ = ["AlliedCamera", "main"]
 
 # PyTango imports
-import PyTango
-from PyTango import DebugIt
-from PyTango.server import run
-from PyTango.server import Device, DeviceMeta
-from PyTango.server import attribute, command
-from PyTango.server import class_property, device_property
-from PyTango import AttrQuality, AttrWriteType, DispLevel, DevState
+import tango
+from tango import DebugIt
+from tango.server import run
+from tango.server import Device, DeviceMeta
+from tango.server import attribute, command
+from tango.server import class_property, device_property
+from tango import AttrQuality, AttrWriteType, DispLevel, DevState
 # Additional import
 # PROTECTED REGION ID(AlliedCamera.additionnal_import) ENABLED START #
 # import alliedCam
@@ -60,7 +60,7 @@ class AcquisitionThread(Thread):
                             
                 while self.stopRunAcq is not True :
                            
-                    self.parent.set_state(PyTango.DevState.RUNNING)
+                    self.parent.set_state(tango.DevState.RUNNING)
                     try: 
                         frame=self.parent.cam0.get_frame(timeout_ms=3000)#00000000
                         data=(frame.as_numpy_ndarray())
@@ -72,17 +72,17 @@ class AcquisitionThread(Thread):
                             print('acq)')
 
                     except:
-                        self.parent.set_state(PyTango.DevState.FAULT)
+                        self.parent.set_state(tango.DevState.FAULT)
                         pass
                 
                 
                 
         
-        self.parent.set_state(PyTango.DevState.STANDBY)
+        self.parent.set_state(tango.DevState.STANDBY)
     
     def stopThread(self):
         self.stopRunAcq=True
-        self.parent.set_state(PyTango.DevState.STANDBY)
+        self.parent.set_state(tango.DevState.STANDBY)
 
    
 class AcquisitionOneThread(Thread):
@@ -95,16 +95,16 @@ class AcquisitionOneThread(Thread):
     
     def run(self):
        try: 
-           self.parent.set_state(PyTango.DevState.RUNNING)
+           self.parent.set_state(tango.DevState.RUNNING)
            
        except:
-           self.parent.set_state(PyTango.DevState.FAULT)
+           self.parent.set_state(tango.DevState.FAULT)
     
     
     
     def stopThread(self):
         self.stopRunAcq=True
-        self.parent.set_state(PyTango.DevState.STANDBY)
+        self.parent.set_state(tango.DevState.STANDBY)
 
 # PROTECTED REGION END #    //  AlliedCamera.additionnal_import
 
@@ -188,26 +188,26 @@ class AlliedCamera(Device):
                         
                         self.isConnected=True
                         
-                        self.set_state(PyTango.DevState.STANDBY)
+                        self.set_state(tango.DevState.STANDBY)
                 except:
                     try:
                         print('Id not valid try to open the fisrt camera')
                         self.camID=cameraIds[0].get_id()
                         self.cam0=vmb.get_camera_by_id(self.camID) # we open the first one
-                        self.set_state(PyTango.DevState.STANDBY)
+                        self.set_state(tango.DevState.STANDBY)
                         self.isConnected=True
                     except:
-                        self.set_state(PyTango.DevState.FAULT)
+                        self.set_state(tango.DevState.FAULT)
                         self.isConnected=False
             else: 
                 try:
                     
                     self.camID=cameraIds[0].get_id()
                     self.cam0=vmb.get_camera_by_id(self.camID)# we open the first one
-                    self.set_state(PyTango.DevState.STANDBY)
+                    self.set_state(tango.DevState.STANDBY)
                     self.isConnected=True
                 except:
-                    self.set_state(PyTango.DevState.FAULT)
+                    self.set_state(tango.DevState.FAULT)
                     self.isConnected=False
                     
         if self.isConnected==True:
@@ -465,8 +465,8 @@ class AlliedCamera(Device):
 def main(args=None, **kwargs):
     # PROTECTED REGION ID(AlliedCamera.main) ENABLED START #
    
-    import PyTango
-    return PyTango.server.run((AlliedCamera,), args=args, **kwargs)
+    import tango
+    return tango.server.run((AlliedCamera,), args=args, **kwargs)
     # PROTECTED REGION END #    //  AlliedCamera.main
 
 if __name__ == '__main__':
