@@ -38,7 +38,7 @@ class CAMERA(QWidget):
     
     def __init__(self, dp,confFile='confCamera.ini',**kwds):
         '''
-        
+            dp :device name : 'Formation/camera/1'
         confFile : TYPE str, optional
             DESCRIPTION. 
                 dep=Device Proxy 
@@ -55,13 +55,13 @@ class CAMERA(QWidget):
             
         '''
         
-        
         super().__init__()
         
         self.version='Tango Viewer'
         self.ccdName=dp
         self.nbcam='camDefault'
-        self.Cam = tango.DeviceProxy(dp)
+        self.Cam = tango.DeviceProxy(dp) # connect to device 
+        # event subscribe to receive image  
         self._event_id = self.Cam.subscribe_event("img",EventType.CHANGE_EVENT,
                                                 self.callback_receive)
         
@@ -74,13 +74,6 @@ class CAMERA(QWidget):
         
         self.isConnected=True
         self.cameraType=self.Cam.model
-        # except:
-        #     self.isConnected=False
-        # self._event_id = self._deviceProxy.subscribe_event("img",EventType.CHANGE_EVENT,
-                                               # self)
-       
-        
-        
         
         p = pathlib.Path(__file__)
         
@@ -107,17 +100,12 @@ class CAMERA(QWidget):
             self.aff="right"    
         
         
-        
-        
-        
-        
-        
-        # self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
+        self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6')) # qdarkstyle :  black windows style
         self.confPath=str(p.parent / confFile) # ini file path
         self.conf=QtCore.QSettings(self.confPath, QtCore.QSettings.Format.IniFormat) # ini file  # ini file 
         self.kwds["confpath"]=self.confPath
         sepa=os.sep
-        print('conf',self.confPath)
+        print('camera configuration file',self.confPath)
         self.icon=str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.iconPlay=self.icon+'Play.png'
@@ -130,13 +118,9 @@ class CAMERA(QWidget):
         self.iconSnap=pathlib.Path(self.iconSnap)
         self.iconSnap=pathlib.PurePosixPath(self.iconSnap)
         self.nbShot=1
-        
-        self.version='Test'
-        
-        
+
         self.setup()
         self.setCamPara()
-        #self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         
     def callback_receive(self,ev):
    
@@ -146,7 +130,7 @@ class CAMERA(QWidget):
         # print(ev)
         if ev.attr_value.value is not None:
             self.data=ev.attr_value.value
-            self.Display(ev.attr_value.value)
+            self.Display(ev.attr_value.value) # fct display when receive new image event 
         
         
         
@@ -156,8 +140,6 @@ class CAMERA(QWidget):
         '''
         
         if self.isConnected==True: # if camera is connected we address min and max value  and value to the shutter and gain box
-            # print('camshutter',self.CAM.camParameter["exposureTime"])
-            # self.CAM.setTrigger("off")
             self.camParameter=dict()
             self.camParameter["expMax"]=self.Cam.expMax
             self.camParameter["expMin"]=self.Cam.expMin
@@ -166,7 +148,6 @@ class CAMERA(QWidget):
             self.camParameter["exposureTime"]=self.Cam.exposure
             self.camParameter["gain"]=self.Cam.gainCam
             
-            print('ici',self.camParameter)
             if self.camParameter["expMax"]>1500: # we limit exposure time at 1500ms
                 self.hSliderShutter.setMaximum(1500)
                 self.shutterBox.setMaximum(1500)
@@ -178,8 +159,6 @@ class CAMERA(QWidget):
             self.shutterBox.setValue(int(self.camParameter["exposureTime"]))
             self.hSliderShutter.setMinimum(int(self.camParameter["expMin"]+1))
             self.shutterBox.setMinimum(int(self.camParameter["expMin"]+1))
-            
-            
             
             self.hSliderGain.setMinimum(int(self.camParameter["gainMin"]))
             self.hSliderGain.setMaximum(int(self.camParameter["gainMax"]))
@@ -210,17 +189,7 @@ class CAMERA(QWidget):
             """
             self.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
             
-    #         self.camNameLabel=QLabel('nomcam',self)
-            
-    #         self.camNameLabel.setText(self.ccdName)
-
-    #         self.camNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    #         self.camNameLabel.setMaximumHeight(80)
-    #         self.camNameLabel.setStyleSheet('font: bold 24px;color: purple')
-    # #        self.camNameLabel.setStyleSheet('')
-            
             vbox1=QVBoxLayout() # 
-            # vbox1.addWidget(self.camNameLabel)
             
             hbox1=QHBoxLayout() # horizontal layout pour run snap stop
             self.sizebuttonMax=30
@@ -252,7 +221,6 @@ class CAMERA(QWidget):
             self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"% (self.iconStop,self.iconStop) )
             self.stopButton.setEnabled(False)
           
-            
             hbox1.addWidget(self.runButton)
             hbox1.addWidget(self.snapButton)
             hbox1.addWidget(self.stopButton)
@@ -349,16 +317,7 @@ class CAMERA(QWidget):
             self.widgetGain.setLayout(vboxGain)
             self.dockGain=QDockWidget(self)
             self.dockGain.setWidget(self.widgetGain)
-            
-            # self.TrigSoft=QPushButton('Trig Soft',self)
-            # self.TrigSoft.setMaximumWidth(100)
-            # self.vbox1.addWidget(self.TrigSoft)
-        
-            # self.vbox1.addStretch(1)
-            # self.cameraWidget.setLayout(self.vbox1)
-            # self.cameraWidget.setMinimumSize(150,200)
-            # self.cameraWidget.setMaximumSize(200,900)
-            
+ 
             hMainLayout=QHBoxLayout()
             
             if self.light==False: # light option : not all the option af visu 
@@ -416,15 +375,13 @@ class CAMERA(QWidget):
         self.hSliderGain.sliderReleased.connect(self.mSliderGain)
         self.trigg.currentIndexChanged.connect(self.trigger)
         
-        
-        # event subscription to receveive image from server
+        # event subscription to receveive image from tango server
         self._event_id = self.Cam.subscribe_event("img",EventType.CHANGE_EVENT,
                                                 self.callback_receive)
         
-        
-        
+        # version without tango 
         # self.CAM.newData.connect(self.Display)
-        # self.CAM.endAcq.connect(self.stopAcq)#,QtCore.Qt.DirectConnection)
+        # self.CAM.endAcq.connect(self.stopAcq)
         # self.TrigSoft.clicked.connect(self.softTrigger)
     
     
@@ -447,16 +404,13 @@ class CAMERA(QWidget):
         '''Display data with visualisation module
         
         '''
-        self.signalData.emit(data)
-        # self.visualisation.newDataReceived(data)
+        self.signalData.emit(data) # emit signal data to visu 
         self.imageReceived=True
        
-              
     def shutter (self):
         '''
         set exposure time 
         '''
-        
         sh=self.shutterBox.value() # 
         self.hSliderShutter.setValue(sh) # set value of slider
         time.sleep(0.1)
@@ -465,16 +419,12 @@ class CAMERA(QWidget):
         self.camParameter["exposureTime"]=sh
         self.conf.sync()
     
-    
-    
     def mSliderShutter(self): # for shutter slider 
         sh=self.hSliderShutter.value() 
         self.shutterBox.setValue(sh) # 
         self.Cam.exposure=sh # Set shutter CCD in ms
         self.conf.setValue(self.nbcam+"/shutter",float(sh))
         self.camParameter["exposureTime"]=sh
-        # self.conf.sync()
-        
         
     def gain (self):
         '''
@@ -513,7 +463,7 @@ class CAMERA(QWidget):
             self.Cam.trig=False
                 
     def acquireOneImage(self):
-        '''Start on acquisition
+        '''Start one image acquisition
         '''
         self.imageReceived=False
         self.runButton.setEnabled(False)
@@ -529,7 +479,7 @@ class CAMERA(QWidget):
     
     def acquireMultiImage(self):    
         ''' 
-            start the acquisition thread
+            start the live acquisition thread
         '''
         
         self.runButton.setEnabled(False)
@@ -581,11 +531,8 @@ class CAMERA(QWidget):
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
-    #appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
     dp = 'Formation/camera/1'
     e = CAMERA(dp,fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu) 
-    
     e.show()
-    
     appli.exec_()       

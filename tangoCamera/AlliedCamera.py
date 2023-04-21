@@ -50,9 +50,6 @@ class AcquisitionThread(Thread):
         
     
     def run(self):
-        # with vimba.Vimba.get_instance() as vmb:
-        #     with self.parent.cam:
-        #         # self.parent.cam0.start_streaming()#self.frame_handler)
         self.stopRunAcq=False
         print('start')
         with vmb:
@@ -175,7 +172,7 @@ class AlliedCamera(Device):
         
         print(self.camID)
         self.camParameter=dict()
-        # self.camIsRunnig=False
+        # self.camIsRunning=False
         self.nbShot=1
         
         
@@ -234,16 +231,11 @@ class AlliedCamera(Device):
               print( 'connected @:'  ,self.camID,'model : ',self.modelCam )
               
               self.cam0.TriggerMode.set('Off')
-               
               self.cam0.TriggerSelector.set('AcquisitionStart')
-              
-              
               self.cam0.TriggerActivation.set('RisingEdge')
-              
               self.cam0.AcquisitionMode.set('SingleFrame')#Continuous
-            
                    
-        ## init cam parameter## differnt command name depend on camera type 
+        ## init cam parameter## different command name depend on camera type 
         if self.modelCam=="GT1290":
             self.camLanguage['exposure']='ExposureTimeAbs'
             self.LineTrigger='Line1'
@@ -263,7 +255,6 @@ class AlliedCamera(Device):
             self.camLanguage['exposure']='ExposureTime'
             self.LineTrigger='Line1'
         
-        
         with vmb:
             with self.cam0:
                 
@@ -276,22 +267,13 @@ class AlliedCamera(Device):
                    self.cam0.GainAuto.set('Off')
                    
                 self.cam0.Height.set(self.cam0.HeightMax.get())
-                
                 self.cam0.Width.set(self.cam0.WidthMax.get())
-                
-    
                 exp=self.cam0.get_feature_by_name(self.camLanguage['exposure'])
-                
                 self.camParameter["expMax"]=float(exp.get_range()[1]/1000)
                 self.camParameter["expMin"]=float(exp.get_range()[0]/1000)+1
-
-                
                 self.camParameter["exposureTime"]=float(exp.get()/1000)
-                
                 self.camParameter["gainMax"]=self.cam0.Gain.get_range()[1]
                 self.camParameter["gainMin"]=self.cam0.Gain.get_range()[0]
-                
-                
                 self.camParameter["gain"]=self.cam0.Gain.get()
            
             print(self.camParameter)
@@ -339,8 +321,6 @@ class AlliedCamera(Device):
                 with self.cam0:
                         exp=self.cam0.get_feature_by_name(self.camLanguage['exposure'])
                         exp.set(float(value*1000))
-        
-       
                         self.camParameter["exposureTime"]=int(exp.get())/1000
                         print("exposure time is set to",self.camParameter["exposureTime"],' micro s')
         # PROTECTED REGION END #    //  AlliedCamera.exposure_write
@@ -349,8 +329,6 @@ class AlliedCamera(Device):
         # PROTECTED REGION ID(AlliedCamera.gainCam_read) ENABLED START #
         with vmb:
                 with self.cam0:
-                     # 
-        
                     self.camParameter["gain"]=self.cam0.Gain.get()
         return  self.camParameter["gain"]
         # PROTECTED REGION END #    //  AlliedCamera.gainCam_read
@@ -360,7 +338,6 @@ class AlliedCamera(Device):
         with vmb:
                 with self.cam0:
                     self.cam0.Gain.set(value) # 
-        
                     self.camParameter["gain"]=self.cam0.Gain.get()
         print("Gain is set to",self.camParameter["gain"])   
         # PROTECTED REGION END #    //  AlliedCamera.gainCam_write
@@ -370,7 +347,6 @@ class AlliedCamera(Device):
         with vmb:
             with self.cam0:
                trig= self.cam0.TriggerMode.get()
-        
         if trig=='on':
             trig=True
         else:
@@ -388,13 +364,10 @@ class AlliedCamera(Device):
                     self.itrig='on'
                     self.camParameter["trigger"]='On'
                 else:
-                   
                     self.cam0.TriggerMode.set('Off')
                     self.camParameter["trigger"]='Off'
                     self.itrig='off'
-        
                 self.camParameter["trigger"]=self.cam0.TriggerMode.get()
-        i
         # PROTECTED REGION END #    //  AlliedCamera.trig_write
 
     def read_model(self):
